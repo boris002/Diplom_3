@@ -58,7 +58,7 @@ class MainPage(BasePage):
         self.click_button(BUTTON_LOGIN_MAIN)
 
     @allure.step("Авторизация пользователя с email")
-    def login(self, email="Boris@pochta.ru", password="Boris@123"):
+    def login(self, email="Boris@example.ru", password="test@123"):
         self.click_login_main()
         self.fill_field(INPUT_LOGIN_EMAIL, email)
         self.fill_field(INPUT_LOGIN_PASSWORD, password)
