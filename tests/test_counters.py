@@ -12,7 +12,6 @@ class TestConstructor:
 
         initial = page.get_ingredient_counter()
         page.drag_ingredient_to_constructor()
-        page.wait_until(lambda: page.get_ingredient_counter() > initial)
-        after = page.get_ingredient_counter()
+        after = page.get_ingredient_counter_increased(initial)
 
         assert after > initial, f"Счётчик не увеличился (было {initial}, стало {after})"

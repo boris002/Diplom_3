@@ -1,8 +1,7 @@
-import time
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver import ActionChains
 import allure
 
 class BasePage:
@@ -75,12 +74,8 @@ class BasePage:
 
     @allure.step("Ждать выполнения условия")
     def wait_until(self, condition_func, timeout=15, poll_frequency=0.5):
-        end_time = time.time() + timeout
-        while time.time() < end_time:
-            if condition_func():
-                return True
-            time.sleep(poll_frequency)
-        raise Exception("Условие не выполнено за отведённое время")
+         WebDriverWait(self.driver, timeout, poll_frequency).until(lambda driver: condition_func())
+    
     @allure.step("Найти все элементы по локатору: {locator}")
     def find_elements(self, locator):
         return self.driver.find_elements(*locator)
@@ -89,3 +84,19 @@ class BasePage:
     def find_element(self, locator):
         return self.driver.find_element(*locator)
 
+    @allure.step("Ждать появления элемента: {locator}")
+    def wait_for_element_to_appear(self, locator, timeout=15):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.visibility_of_element_located(locator)
+        )
+
+    @allure.step("Ждать исчезновения элемента: {locator}")
+    def wait_for_element_to_disappear(self, locator, timeout=15):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.invisibility_of_element_located(locator)
+        )
+    @allure.step("Закрыть модальное окно и дождаться его закрытия (если открыто)")
+    def close_modal_if_visible(self, open_locator, close_locator):
+        if self.is_visible(open_locator):
+            self.click_button(close_locator)
+            self.wait_until(lambda: self.is_not_visible(open_locator))

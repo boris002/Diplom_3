@@ -18,11 +18,10 @@ class TestFeedCounters:
 
         main.click_constructor()
         main.create_order()
-        order_number = main.close_order_modal()
+        main.close_order_modal()
 
         main.go_to_feed()
-        main.wait_until(lambda: feed.get_total_orders() > total_before, timeout=20)
-        total_after = feed.get_total_orders()
+        total_after = feed.get_total_orders_increased(total_before)
 
         assert total_after > total_before, "Счётчик 'Выполнено за всё время' не увеличился"
 
@@ -38,11 +37,10 @@ class TestFeedCounters:
 
         main.click_constructor()
         main.create_order()
-        order_number = main.close_order_modal()
+        main.close_order_modal()
 
         main.go_to_feed()
-        main.wait_until(lambda: feed.get_total_today() > today_before, timeout=20)
-        today_after = feed.get_total_today()
+        today_after = feed.get_total_today_increased(today_before)
 
         assert today_after > today_before, "Счётчик 'Выполнено за сегодня' не увеличился"
 
@@ -59,7 +57,6 @@ class TestFeedCounters:
 
         main.go_to_feed()
         feed.wait_until_feed_loaded()  
-
         feed.wait_for_order_in_progress(order_number, timeout=30)
         assert feed.is_order_in_progress(order_number), (
             f"Заказ {order_number} не найден в разделе 'В работе'"

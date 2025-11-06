@@ -1,11 +1,11 @@
 import allure
 from pages.base_page import BasePage
 from locators.main_locators import *
-import time
+from data.urls import BASE_URL
 
 
 class MainPage(BasePage):
-    URL = "https://stellarburgers.education-services.ru/"
+    URL = BASE_URL
 
     @allure.step("Открыть главную страницу")
     def open_main_page(self):
@@ -32,24 +32,19 @@ class MainPage(BasePage):
 
     @allure.step("Получить номер заказа")
     def get_order_number(self):
-        timeout = time.time() + 30
-        # Ждём временный номер 9999
-        while time.time() < timeout:
-            if self.is_visible(ORDER_NUMBER_LOADING):
-                break
-        # Ждём финальный номер
-        while time.time() < timeout:
-            if self.is_visible(ORDER_NUMBER_MODAL):
-                order_number = int(self.get_text(ORDER_NUMBER_MODAL))
-                return order_number
-        raise Exception("Реальный номер заказа не появился за 30 секунд")
+        # Ждём, когда временный номер исчезнет
+        try:
+            self.wait_for_element_to_disappear(ORDER_NUMBER_LOADING, timeout=30)
+        except Exception:
+            pass  
 
+        # Ждём появления реального номера
+        element = self.wait_for_element_to_appear(ORDER_NUMBER_MODAL, timeout=30)
+        return int(element.text.strip())
     @allure.step("Закрыть модальное окно заказа")
     def close_order_modal(self):
         order_number = self.get_order_number()
-        if self.is_visible(BUTTON_CLOSE_ORDER_MODAL):
-            self.click_button(BUTTON_CLOSE_ORDER_MODAL)
-            self.wait_until(lambda: self.is_not_visible(ORDER_NUMBER_MODAL))
+        self.close_modal_if_visible(ORDER_NUMBER_MODAL, BUTTON_CLOSE_ORDER_MODAL)
         return order_number
 
     #Логин
@@ -72,9 +67,7 @@ class MainPage(BasePage):
 
     @allure.step("Закрыть модалку ингредиента")
     def close_ingredient_modal(self):
-        if self.is_visible(BUTTON_CLOSE_MODAL):
-            self.click_button(BUTTON_CLOSE_MODAL)
-            self.wait_until(lambda: self.is_not_visible(MODAL_INGREDIENT_DETAILS))
+        self.close_modal_if_visible(MODAL_INGREDIENT_DETAILS, BUTTON_CLOSE_MODAL)
 
     @allure.step("Получить значение счётчика ингредиента")
     def get_ingredient_counter(self):
@@ -89,3 +82,12 @@ class MainPage(BasePage):
     @allure.step("Проверить, что модальное окно ингредиента закрыто")
     def modal_closed(self):
         return self.is_not_visible(MODAL_INGREDIENT_DETAILS)
+
+    @allure.step("Получить текущий URL страницы")
+    def get_current_url(self):
+        return self.driver.current_url
+    
+    @allure.step("Получить значение счётчика ингредиента после увеличения")
+    def get_ingredient_counter_increased(self, previous_value):
+        self.wait_until(lambda: self.get_ingredient_counter() > previous_value)
+        return self.get_ingredient_counter()
